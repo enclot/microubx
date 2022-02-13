@@ -59,8 +59,20 @@ class UbxNavPvt:
     def __init__(self, payload):
         self._year, self._month, self._day = struct.unpack('HBB',payload[4:])
         self._hour, self._min, self._sec = struct.unpack('BBB',payload[8:])
-        self._lon, self._lat, self._height,self._hMSL = struct.unpack('llll',payload[24:])
-
+        self._lon, self._lat, self._height, self._hMSL = struct.unpack('llll',payload[24:])
+        self._lon = self._lon*1e-7
+        self._lat = self._lat*1e-7
+        self._height = self._height/1000
+        self._hMSL = self._hMSL/1000
+        
+    @property
+    def utc(self):#(year, month, day, weekday, hours, minutes, seconds, subseconds)
+        return self._year, self._month, self._day, 88, \
+                self._hour, self._min, self._sec, 0
+    @property
+    def jst(self):#+9hour
+        return self._year, self._month, self._day, 88, \
+                self._hour+9, self._min, self._sec, 0
 if __name__ == '__main__':
     uart = UART(1, baudrate=9600, tx=26, rx=32)
     
