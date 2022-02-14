@@ -60,6 +60,7 @@ class UbxNavPvt:
         self._year, self._month, self._day = struct.unpack('HBB',payload[4:])
         self._hour, self._min, self._sec = struct.unpack('BBB',payload[8:])
         self._lon, self._lat, self._height, self._hMSL = struct.unpack('llll',payload[24:])
+        self._fixType = struct.unpack('B',payload[20:])[0]
         self._lon = self._lon*1e-7
         self._lat = self._lat*1e-7
         self._height = self._height/1000
