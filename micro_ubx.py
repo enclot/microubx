@@ -1,14 +1,15 @@
-from machine import UART, SDCard
+from machine import UART
 from io import BytesIO
 import binascii
 import struct
-
+import time
+ 
 class UbxParser:
     def __init__(self):
         self._carryover = bytearray()
         
     def parse(self, rxbuf) -> object: 
-        message_buf = self._carryover + rxbuf
+        message_buf = self._carryover + rxbuf    
         bytes_io = BytesIO(message_buf)
 
         while bytes_io.tell()!=len(message_buf):
@@ -67,26 +68,21 @@ class UbxNavPvt:
         self._hMSL = self._hMSL/1000
         
     @property
-    def utc(self):#(year, month, day, weekday, hours, minutes, seconds, subseconds)
-        return self._year, self._month, self._day, 88, \
+    def utc(self):
+        #(year, month, day, weekday, hours, minutes, seconds, subseconds)
+        return self._year, self._month, self._day, 0, \
                 self._hour, self._min, self._sec, 0
     @property
     def jst(self):#+9hour
-        return self._year, self._month, self._day, 88, \
-                self._hour+9, self._min, self._sec, 0
-if __name__ == '__main__':
-    uart = UART(1, baudrate=9600, tx=26, rx=32)
+        #(year, month, mday, hour, minute, second, weekday, yearday) 
+        t = time.mktime((self._year, self._month, self._day, \
+                         self._hour+9, self._min, self._sec, 0, 0))
+        
+        year,month,mday,hour,minute,second,weekday,yearday = time.localtime(t)
+        #(year, month, day, weekday, hours, minutes, seconds, subseconds)
+        return year, month, mday, weekday, hour, minute, second, 0
     
-    parser = UbxParser()
-    
-    while True:
-        while uart.any():
-            rxbuf = bytearray(uart.any())
-            uart.readinto(rxbuf)
-            
-            nav_pvt = parser.parse(rxbuf)
-            if nav_pvt:
-                print(nav_pvt._sec)
+
 
     
 
